@@ -43,14 +43,16 @@ public class GroupOfCards
     /**
      * @return the size of the group of cards
      */
-    public int getSize() {
+    public int getSize()
+    {
         return size;
     }
 
     /**
      * @param givenSize the max size for the group of cards
      */
-    public void setSize(int givenSize) {
+    public void setSize(int givenSize)
+    {
         size = givenSize;
     }
     

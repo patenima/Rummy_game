@@ -1,0 +1,326 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package ca.sheridancollege.project;
+
+/**
+ *
+ * @author Nima
+ */
+import java.util.*;
+
+
+public class Rummy 
+{
+
+    private static Scanner scanner;   //Global scanner used for all input
+
+    public static void main(String[] args) 
+    {
+        scanner = new Scanner(System.in);
+        Players player1 = new Players();
+        PCPlayers pc = new PCPlayers();
+
+        //create a new deck object
+        Decks deck = new Decks();
+        //Fill it
+        LinkedList<Card> newDeck = deck.makeDeck();
+        //Shuffle it
+        deck.shuffle(newDeck);
+        //deal 10 cards to player
+        for (int x = 0; x < 10; x++)
+        {
+            player1.addToHand(deck.deal(newDeck));
+            pc.addToHand(deck.deal(newDeck));
+        }
+        //start discard pile and stock pile
+        StockPiles.setStockPile(newDeck);
+        DiscardPile.addToDiscard(StockPiles.Draw());
+
+
+
+
+        //start the game loop and run as long as player has cards
+        while(true)
+        {
+
+            //check that there are still cards in the stockpile if not turn discard
+            if (StockPiles.getStockPile().isEmpty())
+            {
+                DiscardPile.toStockPile();
+            }
+            if (player1.getPlayerHand().getAllCards().isEmpty()){break;}
+            System.out.println("Players turn.");
+            //show cards
+            System.out.println(player1.getPlayerHand().getAllCards().toString());
+            // show top of discard
+            System.out.println("The discard pile has a: " + DiscardPile.ShowTopCard());
+            //Decide where to draw from
+            System.out.println("Where do you would like to draw from?\n1-Stock Pile\n2-Discard Pile");
+            //validate input
+            int answer = isWithinRange(1,2);
+            //draw accordingly
+            if (answer == 1)
+            {
+                player1.addToHand(StockPiles.Draw());
+            }
+            else if (answer == 2)
+            {
+                player1.addToHand(DiscardPile.Draw());
+            }
+            //safeguard a way back if selection is not correct
+            boolean turn = true;
+            //make one meld per turn
+            boolean turnMeld = false;
+            //let the player meld, layoff, or just discard in his turn
+            while (turn) 
+            {
+                if (player1.getPlayerHand().getAllCards().isEmpty()){break;}
+
+                //Show Table
+                System.out.println("On the table is: " + Tables.getTableCards().toString());
+                //show cards
+                System.out.println("You have: " + player1.getPlayerHand().getAllCards().toString());
+                //give play options
+                System.out.println("What would you like to do?");
+                System.out.println("1-Meld\n2-Lay off\n3-Discard and end Turn");
+                //validate input
+                int play = isWithinRange(1, 3);
+                //play accordingly
+                if (play == 1) 
+                {
+                    if (turnMeld)
+                    {
+                        System.out.println("Sorry, but you can just meld once per turn!");
+                    }
+
+                    else 
+                    {
+                        ArrayList<Card> meld = new ArrayList<Card>();
+                        while (!player1.getPlayerHand().getAllCards().isEmpty()) 
+                        {
+                            //determine number to cancel
+                            int endRange = player1.getPlayerHand().getAllCards().size() + 1;
+                            System.out.println("Choose at least 3 cards to meld. Card must be +-1 of current to meld!");
+                            System.out.println(endRange + "-to cancel all and return to menu (Will also cancel current meld and put at the end of the hand)");
+                            //show cards with corresponding input numbers
+                            showInput(player1.getPlayerHand().getAllCards());
+
+                            //make exit possible and return to menu
+                            int i = isWithinRange(1, endRange);
+                            if (i == endRange) 
+                            {
+                                //if player started melding and decided differently
+                                //empty meld array and put back into hand
+                                if (!meld.isEmpty()) 
+                                {
+                                    for (Card c : meld) 
+                                    {
+                                        player1.getPlayerHand().AddCard(c);
+                                    }
+                                    meld.clear();
+                                }
+                                break;
+                            } else 
+                            {
+
+                                Card m = player1.getPlayerHand().getCard(i - 1);
+                                //if the meld array is empty add card
+                                if (meld.isEmpty()) 
+                                {
+                                    meld.add(m);
+                                    player1.getPlayerHand().Remove(m);
+                                }
+                                //if the Suit is the same add
+                                else if (meld.get(0).getSuit() == m.getSuit()) 
+                                {
+                                    //if the current cards value is one greater then the last one in the array
+                                    if (meld.get(meld.size() - 1).getRank().getValue() + 1 == m.getRank().getValue()) 
+                                    {
+                                        meld.add(m);    //put to meld list
+                                        player1.getPlayerHand().Remove(m);  //remove from hand
+                                        Collections.sort(meld); //sort meld list
+                                    }
+                                    //if the current cards value is one less then the first one in the array
+                                    else if (meld.get(0).getRank().getValue() - 1 == m.getRank().getValue()) 
+                                    {
+                                        meld.add(m);    //put to meld list
+                                        player1.getPlayerHand().Remove(m);  //remove from hand
+                                        Collections.sort(meld); //sort meld list
+                                    }
+                                }
+                                //if the rank is the same add
+                                else if (meld.get(0).getRank() == m.getRank())
+                                {
+                                    meld.add(m);
+                                    player1.getPlayerHand().Remove(m);
+                                }
+                                //else retry
+                                else 
+                                {
+                                    System.out.println("The cards must have the same suit or rank!");
+                                    continue;
+                                }
+                                //if player has at least 3 cards give option to continue or quit.
+                                if (meld.size() == 3 || player1.getPlayerHand().getAllCards().isEmpty())
+                                {
+                                    //meld the array
+                                    player1.melding(meld);
+                                    turnMeld = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                //Lay off cards to table
+                }
+                else if (play == 2)
+                {
+                    //collect cards to lay off
+                    ArrayList<Card> collect = new ArrayList<Card>();
+                    if (Tables.getTableCards().isEmpty())
+                    {
+                        System.out.println("Sorry but there are no cards to add to yet");
+
+                    } else 
+                    {
+                        while (true) 
+                        {
+                            //show player card
+                            System.out.println("Your Cards: " + player1.getPlayerHand().getAllCards().toString());
+                            System.out.println("Which cards do you want to add to?");
+                            for (int x = 1; x <= Tables.getTableCards().size(); x++) 
+                            {
+                                System.out.println(x + "-" + Tables.getTableCards().get(x - 1).toString());
+                            }
+                            System.out.println(Tables.getTableCards().size() + 1 + "-End");
+                            int a = isWithinRange(1, Tables.getTableCards().size() + 1);
+
+                            if (a == Tables.getTableCards().size() + 1) 
+                            {
+                                break;
+                            } else 
+                            {
+                                while (true) 
+                                {
+                                    //show player card and to add
+                                    System.out.println("Table: " + Tables.getTableCards().get(a - 1));
+                                    //System.out.println("Your Cards: " + player1.getPlayerHand().getAllCards().toString());
+                                    System.out.println("What card do you want to add here?");
+                                    showInput(player1.getPlayerHand().getAllCards());
+                                    //way to cancel out of current lay out.
+                                    int endLayOut = player1.getPlayerHand().getAllCards().size() + 1;
+                                    System.out.println(endLayOut + "-to cancel and return to table view!");
+                                    //get the current table selection for the players meld method
+                                    ArrayList<Card> layOff = Tables.getTableCards().get(a - 1);
+                                    //check users input
+                                    int inp = isWithinRange(1, endLayOut);
+                                    //way to get out of current layout and back to table menu
+                                    if (inp == endLayOut) 
+                                    {
+                                        break;
+                                    } else {
+                                        Card l = player1.getPlayerHand().getCard(inp - 1);
+
+                                        if (layOff.get(0).getSuit() == l.getSuit()) 
+                                        {
+                                            //if the current cards value is one greater then the last one in the array
+                                            if (layOff.get(layOff.size() - 1).getRank().getValue() + 1 == l.getRank().getValue()) 
+                                            {
+                                                collect.add(l);    //put to lay-off array
+                                                player1.getPlayerHand().Remove(l);  //remove from hand
+                                            }
+                                            //if the current cards value is one less then the first one in the array
+                                            else if (layOff.get(0).getRank().getValue() - 1 == l.getRank().getValue()) 
+                                            {
+                                                collect.add(l);    //put to meld list
+                                                player1.getPlayerHand().Remove(l);  //remove from hand
+                                            }
+                                        } else if (layOff.get(0).getRank() == l.getRank()) 
+                                        {
+                                            collect.add(l);    //put to meld list
+                                            player1.getPlayerHand().Remove(l);  //remove from hand
+                                        }
+                                        //else retry
+                                        else 
+                                        {
+                                            System.out.println("The cards must have the same suit or rank!");
+                                            continue;
+                                        }
+                                        Tables.addToMeld(collect, a - 1);
+                                        //clear array for another round
+                                        collect.clear();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //Discard and finish the turn
+                else {
+                    System.out.println("What card you would like to discard? Choose by position!");
+                    //show cards to discard
+                    showInput(player1.getPlayerHand().getAllCards());
+                    //let the player put in a number for the card to discard
+                    int discard = isWithinRange(1, player1.getPlayerHand().getAllCards().size());
+                    //discard that card
+                    player1.discardFromHand(player1.getPlayerHand().getCard(discard - 1));
+                    turn = false;
+                }
+            }
+            //Check if player won and stop
+            if (player1.getPlayerHand().getAllCards().isEmpty()){break;}
+            //check that there are still cards in the stockpile if not turn discard
+            if (StockPiles.getStockPile().isEmpty()) {
+                DiscardPile.toStockPile();
+            }
+            //Computers turn
+            System.out.println("Computer Plays.");
+            pc.Play();
+            //Check if computer won and stop
+            if (pc.playerHand.getAllCards().isEmpty()){break;}
+        }
+        //if player won display message
+        if (player1.getPlayerHand().getAllCards().isEmpty()) {
+            System.out.println("Congratulations! You Win!");
+        }
+        //if computer won display message
+        else{
+            System.out.println("Sorry! The Computer won!");
+        }
+        System.out.println("Thank you for playing.");
+    }
+
+
+    //Validation methods
+
+    private static void showInput(ArrayList<Card> toChoose){
+        String input = " ";
+        for (int x = 1; x <= toChoose.size(); x++) {
+            input += x +"-" + toChoose.get(x-1).toString() +", ";
+        }
+        System.out.println(input);
+    }
+
+    private static int isWithinRange(int min, int max) {
+
+        while (true) {
+            try {
+                String stringInput = scanner.nextLine();
+                int intInput = Integer.parseInt(stringInput);
+                if (intInput >= min && intInput <= max) {
+                    return intInput;
+                } else {
+                    System.out.println("Please enter a positive number, within the range " + min + " " + max);
+                }
+            } catch (NumberFormatException ime) {
+                System.out.println("Please type a positive number");
+            }
+        }
+    }
+}

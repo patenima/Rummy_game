@@ -1,26 +1,55 @@
-/**
- * SYST 17796 Project Winter 2019 Base code.
- * Students can modify and extend to implement their game.
- * Add your name as a modifier and the date!
- */
+
 package ca.sheridancollege.project;
 
-/**
- * A class to be used as the base Card class for the project. Must be general
- * enough to be instantiated for any Card game. Students wishing to add to the code 
- * should remember to add themselves as a modifier.
- * @author dancye, 2018
- */
-public abstract class Card 
+
+public class Card implements Comparable<Card> 
 {
-    //default modifier for child classes
-    
-    /**
-     * Students should implement this method for their specific children classes 
-     * @return a String representation of a card. Could be an UNO card, a regular playing card etc.
-     */
-    
+    //Data for a card object
+    private Ranks rank;
+    private Suit suit;
+
+    //Constructor
+    public Card(Ranks rank, Suit suit)
+    {
+        this.rank = rank;
+        this.suit = suit;
+    }
+
+    public Ranks getRank() 
+    {
+        return this.rank;
+    }
+
+    public Suit getSuit() 
+    {
+        return this.suit;
+    }
+
+    //Method that returns the string representation of a card.
     @Override
-    public abstract String toString();
-    
+    public String toString()
+    {
+        String shortRankString = this.rank.getShortString();        //get card rank short string representation
+        char suit = this.suit.getSymbol();                          //get card suit symbol
+        String color = this.suit.getColor();                        //get suit color (red/black)
+        String defaultColor = "\u001B[0m";                          //ANSI default color
+
+        return color + shortRankString + suit + defaultColor;
+    }
+
+    public int compareTo(Card otherCard) 
+    {
+        if (this.rank.getValue() < otherCard.rank.getValue()) 
+        {
+            //lower ranks at the front
+            return -1;
+        } else if (this.rank.getValue() > otherCard.rank.getValue()) 
+        {
+            //higher ranks at the back
+            return 1;
+        } else 
+        {
+            return 0;
+        }
+    }
 }
