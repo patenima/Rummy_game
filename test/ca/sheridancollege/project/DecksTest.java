@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author dsi1100
+ * @author Nima
  */
 public class DecksTest {
     

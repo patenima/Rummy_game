@@ -7,7 +7,7 @@ package ca.sheridancollege.project;
 
 /**
  *
- * @author Prince
+ * @author Nima
  */
 import java.util.*;
 

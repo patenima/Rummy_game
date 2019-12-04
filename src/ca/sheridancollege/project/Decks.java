@@ -6,8 +6,7 @@
 package ca.sheridancollege.project;
 
 /**
- *
- * @author Nima
+ *@author Nima
  */
 import java.util.LinkedList;
 import java.util.Random;

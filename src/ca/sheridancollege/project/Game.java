@@ -1,5 +1,5 @@
 /**
- * SYST 17796 Project Winter 2019 Base code.
+ * SYST 17796 Project Winter Base code.
  * Students can modify and extend to implement their game.
  * Add your name as a modifier and the date!
  */
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 /**
  * The class that models your game. You should create a more specific
  * child of this class and instantiate the methods given.
- * @author dancye, 2018
+ * @author Nima
  */
 public abstract class Game 
 {
